@@ -1,4 +1,4 @@
-package com.crop.base64;
+package com.crop;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.UrlBase64;

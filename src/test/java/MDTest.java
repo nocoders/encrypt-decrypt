@@ -1,8 +1,7 @@
-import com.crop.md.MDUtil;
+import com.crop.MDUtil;
 import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
 /**
  * @author linmeng
