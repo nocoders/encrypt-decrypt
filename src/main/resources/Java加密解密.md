@@ -204,7 +204,6 @@ JDK、Bouncy Castle 和codec都支持MD5，代码也比较简单。
 #### 实现
 
 ```
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
@@ -393,16 +392,42 @@ codec实现了各种算法，请看代码
 
 ### MAC算法
 
-MAC算法结合了MD和SHA算法的优势，并加入密钥的支持，是一种更为安全的消息摘要算法。
+MAC算法结合了MD和SHA算法的优势，并加入密钥的支持，是一种更为安全的消息摘要算法。MAC算法分为两大系列，MD系列和SHA系列。MD系列包括HmacMD2、HmacMD4和HmacMD5三种算法，SHA系列有HmacSHA1、HmacSHA224、HmacSHA256、HmacSHA384和HmacSHA512五种算法。
 
-MAC算法主要集合了MD和SHA两大消息摘要算法，MD系列有HmacMd2、HmacMd4和HmacMd5三种算法，SHA系列有HmacSha1、HmacSha224、HmacSha256、HmacSha384和HMacSha512五种算法。JDK 实现了
+JDK支持HmacMD5、HmacSHA1、HmacSHA256、HmacSHA384和HmacSHA512，Bouncy Castle支持HmacMD2、HmacMD4和HmacSHA224。
 
-使用MAC算法主要分两步，构建密钥，获取摘要。
+#### 实现
 
-这个我写了三个公共方法：生成密钥字符串方法、还原密钥方法和获取摘要方法。
+##### 公共方法
+
+我提取出来三个公共方法，一个是生成密钥字符串的、一个是将密钥字符串转换成密钥对象的，最后一个是生成摘要字符串的。为了方便保存和使用，我们将密钥和摘要字节数组转为16进制字符串。
 
 ```
- /**
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+
+/**
+ * Mac算法
+ *
+ * @author linmeng
+ * @date 2022/5/15 21:57
+ */
+public class MacUtil {
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+    /**
      * 根据算法生成密钥
      *
      * @param algorithm
@@ -443,11 +468,183 @@ MAC算法主要集合了MD和SHA两大消息摘要算法，MD系列有HmacMd2、
         byte[] bytes = mac.doFinal(str.getBytes(StandardCharsets.UTF_8));
         return ByteTransfer.byteArrayTransfer2HexString(bytes);
     }
+}
+```
+
+##### 各算法实现
+
+简单，粗暴
+
+```
+public static String hmacMD2Algorithm = "HmacMD2";
+public static String hmacMD4Algorithm = "HmacMD4";
+public static String hmacMD5Algorithm = "HmacMD5";
+public static String hmacSHA1Algorithm = "HmacSHA1";
+public static String hmacSHA224Algorithm = "HmacSHA224";
+public static String hmacSHA256Algorithm = "HmacSHA256";
+public static String hmacSHA384Algorithm = "HmacSHA384";
+public static String hmacSHA512Algorithm = "HmacSHA512";
+@Test
+public void macTest() throws NoSuchAlgorithmException, DecoderException, InvalidKeyException {
+    String message = "Java 加密和解密的艺术";
+    String hmacMD2KeyStr = initKey(hmacMD2Algorithm);
+    String hmacMd2DigestStr = encodeHex(message, hmacMD2KeyStr, hmacMD2Algorithm);
+    System.out.printf("hmacMD2,密钥：%s,摘要：%s",hmacMD2KeyStr,hmacMd2DigestStr);
+    System.out.println();
+    String hmacMD4KeyStr = initKey(hmacMD4Algorithm);
+    String hmacMd4DigestStr = encodeHex(message, hmacMD4KeyStr, hmacMD4Algorithm);
+    System.out.printf("hmacMD4,密钥：%s,摘要：%s",hmacMD4KeyStr,hmacMd4DigestStr);
+    System.out.println();
+    String hmacMD5KeyStr = initKey(hmacMD5Algorithm);
+    String hmacMd5DigestStr = encodeHex(message, hmacMD5KeyStr, hmacMD5Algorithm);
+    System.out.printf("hmacMD5,密钥：%s,摘要：%s",hmacMD5KeyStr,hmacMd5DigestStr);
+    System.out.println();
+    String hmacSHA1KeyStr = initKey(hmacSHA1Algorithm);
+    String hmacSHA1DigestStr = encodeHex(message, hmacSHA1KeyStr, hmacSHA1Algorithm);
+    System.out.printf("hmacSHA1,密钥：%s,摘要：%s",hmacSHA1KeyStr,hmacSHA1DigestStr);
+    System.out.println();
+    String hmacSHA224KeyStr = initKey(hmacSHA224Algorithm);
+    String hmacSHA224DigestStr = encodeHex(message, hmacSHA224KeyStr, hmacSHA224Algorithm);
+    System.out.printf("hmacSHA224,密钥：%s,摘要：%s",hmacSHA224KeyStr,hmacSHA224DigestStr);
+    System.out.println();
+    String hmacSHA256KeyStr = initKey(hmacSHA256Algorithm);
+    String hmacSHA256DigestStr = encodeHex(message, hmacSHA256KeyStr, hmacSHA256Algorithm);
+    System.out.printf("hmacSHA256,密钥：%s,摘要：%s",hmacSHA256KeyStr,hmacSHA256DigestStr);
+    System.out.println();
+    String hmacSHA384KeyStr = initKey(hmacSHA384Algorithm);
+    String hmacSHA384DigestStr = encodeHex(message, hmacSHA384KeyStr, hmacSHA384Algorithm);
+    System.out.printf("hmacSHA384,密钥：%s,摘要：%s",hmacSHA384KeyStr,hmacSHA384DigestStr);
+    System.out.println();
+    String hmacSHA512KeyStr = initKey(hmacSHA512Algorithm);
+    String hmacSHA512DigestStr = encodeHex(message, hmacSHA512KeyStr, hmacSHA512Algorithm);
+    System.out.printf("hmacSHA512,密钥：%s,摘要：%s",hmacSHA512KeyStr,hmacSHA512DigestStr);
+    System.out.println();
+}
+```
+
+### 其他消息摘要算法
+
+还有一些消息摘要算法，目前不作介绍，后续新开一篇文章进行介绍
+
+## 对称加密算法
+
+对称加密算法是现在应用范围最广，使用频率最高的加密算法。当我们想对一些私密数据进行密码保护时，就可以用对称加密，使用密钥对数据进行加密、解密。目前可通过Java语言实现的对称加密算法有20多种，典型的对称加密主要是这四种：DES、DESede、AES和IDEA，接下来我们就将这四种加密算法逐个介绍。
+
+### DES算法
+
+开篇说明：DES目前已经被破解，在工作中用处不大，可以跳过，有兴趣的同学可以看下
+
+#### 工作流程
+
+1. 由消息发送方构建密钥并公布给消息接收方
+2. 消息发送方使用密钥对数据加密，然后将加密数据发送
+3. 消息接收方将接收到的数据进行解密
+
+流程很简单，JDK支持56位密钥长度，作为补充，Bouncy Castle提供64位密钥长度，相较于JDK安全性更高，并且补充了多种填充方式。
+
+#### 代码实现
+
+加密算法的代码实现基本上就是几个方法，是密钥字符串的生成、密钥字符串转密钥对象、加密和解密。接下来我们一个个的编写各个方法
+
+```
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.Security;
+
+/**
+ * @author linmeng
+ * @date 2022/5/22 22:43
+ */
+
+public class DESUtil {
+
+    /* 密钥算法*/
+    private static final String KEY_ALGORITHM = "DES";
+    /*加密解密算法/工作方式/填充模式*/
+    private static final String CIPHER_ALGORITHM = "DES/ECB/PKCS5Padding";
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+    /**
+     * 根据算法生成密钥
+     * jdk 和 Bouncy Castle 密钥生成代码不一样，根据条件执行不同代码
+     * @param isBouncyCastle 是否生成Bouncy Castle
+     * @return
+     */
+    public static String initKey(Boolean isBouncyCastle) throws Exception {
+        KeyGenerator keyGenerator;
+        if (isBouncyCastle){
+            keyGenerator = KeyGenerator.getInstance(KEY_ALGORITHM,"BC");
+            keyGenerator.init(64);
+        }else {
+            keyGenerator = KeyGenerator.getInstance(KEY_ALGORITHM);
+            keyGenerator.init(56);
+        }
+        SecretKey secretKey = keyGenerator.generateKey();
+        return new String(Hex.encodeHex(secretKey.getEncoded()));
+    }
+
+    /**
+     * 根据16进制生成的密钥字符串和算法还原密钥
+     *
+     * @param keyStr
+     * @return
+     */
+    public static SecretKey restoreKey(String keyStr) throws Exception {
+        byte[] bytesKey = Hex.decodeHex(keyStr);
+        // 密钥材料实例化
+        DESKeySpec keySpec = new DESKeySpec(bytesKey);
+        // 密钥工厂实例化
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(KEY_ALGORITHM);
+        // 密钥实例化
+        SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+
+        return secretKey;
+    }
+
+    /**
+     * 生成Base加密字符串
+     * @param str
+     * @param keyStr
+     * @return
+     */
+    public static String encrypt(String str,String keyStr) throws Exception {
+        SecretKey secretKey = restoreKey(keyStr);
+        //  实例化
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        // 初始化
+        cipher.init(Cipher.ENCRYPT_MODE,secretKey);
+
+        return Base64.encodeBase64String(cipher.doFinal(str.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    /**
+     * 对加密数据进行解密
+     * @param message 已加密数据
+     * @param keyStr 密钥字符串
+     * @return 解密数据
+     */
+    public static String decrypt(String message,String keyStr) throws Exception {
+        SecretKey secretKey = restoreKey(keyStr);
+        //  实例化
+        Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+        // 初始化
+        cipher.init(Cipher.DECRYPT_MODE,secretKey);
+
+        return new String(cipher.doFinal(Base64.decodeBase64(message)));
+    }
+}
 ```
 
 
-
-## 对称加密算法
 
 ## 非对称加密算法
 
@@ -465,4 +662,4 @@ MAC算法主要集合了MD和SHA两大消息摘要算法，MD系列有HmacMd2、
 
 [让你彻底理解Base64算法](https://blog.csdn.net/shusheng0007/article/details/118220299)
 
-[一文搞懂单向散列加密：MD5、SHA-1、SHA-2、SHA-3](https://baijiahao.baidu.com/s?id=1712156053788575917&wfr=spider&for=pc)
+[一文搞懂单向散列加密：MD5、SHA-1、SHA-2、SHA-3](
